@@ -1,6 +1,6 @@
 # tr-translate
 
-Specs: This program simulates the tr unix command. Translates characters
+Specs: This C program simulates the tr unix command. Translates characters
 from standard input. 
 
 Standard form: ./translate [Option] Argument1 [Argument2]
