@@ -153,7 +153,7 @@ char * getbounds(int val, char *string) {
 
     /* Numeric values */
     if(strcmp(string, "[:digit:]") == 0) {
-        if(val == 2) {
+        if(val == 2) { 
             printf("Translate: the only character class that can appear in string2\
                     are [:upper:] and [:lower:]\n");
             exit(-1);
