@@ -9,6 +9,7 @@
 
    Returns 0 if no errors are encountered, -1 otherwise.
  */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,6 +17,7 @@
 int delete(int, char *); 
 int translate(char *, char *);
 char opt(char *);
+char * getbounds(int, char *);
 
 int main(int argc, char *argv[]) {
     int len;
@@ -50,15 +52,24 @@ int main(int argc, char *argv[]) {
  */
 int translate(char *arg_one, char *arg_two) {
     int iochar, i, flag;
-
     int lone = strlen(arg_one);
     int ltwo = strlen(arg_two);
+    char *tmp;
 
     if(*arg_one == '-') {
         printf("Translate: missing operand after '%s'\n", arg_two);
         return -1;
     }
-
+    /* Check for special range entries */
+    if((tmp = getbounds(1, arg_one)) != NULL) {
+        arg_one = tmp;
+        lone = strlen(arg_one);
+        if((tmp = getbounds(2, arg_two)) != NULL) {
+            arg_two = tmp;
+            ltwo = strlen(arg_two);
+        }
+    }
+    /* Perform translations */
     while((iochar = getchar()) != EOF) {
         flag = 0;
         for(i = 0; i < lone; i++) {
@@ -76,6 +87,8 @@ int translate(char *arg_one, char *arg_two) {
         if(flag == 0)
             putchar(iochar);
     }
+    free(arg_one);
+    free(arg_two);
     return 0;
 }
 
@@ -89,12 +102,17 @@ int translate(char *arg_one, char *arg_two) {
 int delete(int arg_count, char *del) {
     int iochar, i, flag;
     int lone = strlen(del);
+    char *tmp;
 
     /* Too many command line arguments entered */
     if(arg_count > 3) {
         printf("Translate: invalid number of operands provided\n");
         printf("Only one string must be provided when using delete mode \n");
         return -1;
+    }
+    if((tmp = getbounds(1, del)) != NULL) {
+        del = tmp;
+        lone = strlen(del);
     }
 
     /* Process stream of input, delete appropriate characters */
@@ -111,6 +129,70 @@ int delete(int arg_count, char *del) {
         if(flag == 0)
             putchar(iochar);
     }
+    free(del);
+}
+
+/**
+ * Checks an argument to see if it's a range entry. Generates a string containing 
+ * the set of characters in the given range.
+ * @param int val, value representing whether the given string is Argument1 or 
+ * Argument2.
+ * @param char *string, string value to be scanned.
+ * @return char *, new;y allocated string containing the set of characters in 
+ * the given range.
+ *
+ * [:digit:] -- all numeric values
+ * [:alpha:] -- all alphabetical letters
+ * [:upper:] -- all uppercase letters
+ * [:lower:] -- all lowercase letters
+ */ 
+char * getbounds(int val, char *string) {
+
+    char *newstring = (char *) malloc(sizeof(char) * 60);
+    int i, index = 0;
+
+    /* Numeric values */
+    if(strcmp(string, "[:digit:]") == 0) {
+        if(val == 2) {
+            printf("Translate: the only character class that can appear in string2\
+                    are [:upper:] and [:lower:]\n");
+            exit(-1);
+        }
+        for(i = 48; i <= 57; i++)
+            *(newstring + index++) = i;
+       *(newstring + index) = '\0';
+        return newstring;
+    }
+    /* Alphabetic characters */
+    else if(strcmp(string, "[:alpha:]") == 0) {
+        if(val == 2) {
+            printf("Translate: the only character class that can appear in string2\
+                    are [:upper:] and [:lower:]\n");
+            exit(-1);
+        }
+        for(i = 65; i <= 122; i++) {
+            if(i < 91 || i > 96)
+                *(newstring + index++) = i;
+        }
+        *(newstring + index) = '\0';       
+        return newstring;
+    }
+    /* Uppercase letters */
+    else if(strcmp(string, "[:upper:]") == 0) {
+        for(i = 65; i <= 90; i++)
+            *(newstring + index++) = i;
+        *(newstring + index) = '\0';
+        return newstring;
+    }
+    /* Lowercase letters */
+    else if(strcmp(string, "[:lower:]") == 0) {
+        for(i = 97; i <= 122; i++)
+            *(newstring + index++) = i;
+        *(newstring + index) = '\0';
+        return newstring;
+    }
+    free(newstring);
+    return NULL;
 }
 
 /**
